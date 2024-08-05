@@ -7,9 +7,9 @@ To run this project locally, follow these steps.
 1. Clone the project locally, change into the directory, and install the dependencies:
 
 ```sh
-git clone https://github.com/dabit3/polygon-ethereum-nextjs-marketplace.git
+[git clone https://github.com/dabit3/polygon-ethereum-nextjs-marketplace.git](https://github.com/Grafiters/RFT-Ryudelta-Fullshit-Token-).git
 
-cd polygon-ethereum-nextjs-marketplace
+cd RFT-Ryudelta-Fullshit-Token-
 
 # install using NPM or Yarn
 npm install
@@ -82,4 +82,4 @@ module.exports = {
 
 If using Infura, update __.infuraid__ with your [Infura](https://infura.io/) project ID.
 # REFERENCE FROM
-(PolyPlace)[https://github.com/0xanmol/PolyPlace] -> reference
+[PolyPlace](https://github.com/0xanmol/PolyPlace) -> reference
