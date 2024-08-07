@@ -17,17 +17,29 @@ export default function MyAssets() {
   useEffect(() => {
     loadNFTs()
   }, [])
-  async function loadNFTs() {
-    const web3Modal = new Web3Modal({
-      network: "testnet",
-      cacheProvider: true,
-    })
-    const connection = await web3Modal.connect()
-    const provider = new ethers.providers.Web3Provider(connection)
-    const signer = provider.getSigner()
 
-    const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
-    const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
+  let web3Modal, provider, signer, marketContract, tokenContract;
+  async function initializeWeb3Modal() {
+    web3Modal = new Web3Modal({
+      network: "testnet",
+      cacheProvider: false, // Set to true if you want to cache the provider
+    });
+  
+    const connection = await web3Modal.connect();
+    provider = new ethers.providers.Web3Provider(connection);
+    signer = provider.getSigner();
+    
+    marketContract = new ethers.Contract(nftmarketaddress, Market.abi, signer);
+    console.log('market', marketContract.address);
+  
+    tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider);
+    console.log('token', tokenContract.address);
+  }
+
+  
+  async function loadNFTs() {
+    await initializeWeb3Modal();
+
     const data = await marketContract.fetchMyNFTs()
 
     const items = await Promise.all(data.map(async i => {
@@ -41,6 +53,8 @@ export default function MyAssets() {
         owner: i.owner,
         image: meta.data.image,
       }
+
+      console.log(item);
       return item
     }))
     setNfts(items)
