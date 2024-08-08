@@ -19,7 +19,7 @@ export default function Home() {
   }, [])
   async function loadNFTs() {
     /* create a generic provider and query for unsold market items */
-    const provider = new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.bnbchain.org:8545")
+    const provider = new ethers.providers.JsonRpcProvider("https://rpc.testnet.fantom.network")
     const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
     const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, provider)
     const data = await marketContract.fetchMarketItems()

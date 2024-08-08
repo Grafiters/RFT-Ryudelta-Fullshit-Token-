@@ -30,6 +30,16 @@ function MyApp({ Component, pageProps }) {
               Creator Dashboard
             </a>
           </Link>
+          <Link href="/collection">
+            <a className="mr-6 text-pink-500 hover:text-sky-400">
+              Collection
+            </a>
+          </Link>
+          <Link href="/create-token">
+            <a className="mr-6 text-pink-500 hover:text-sky-400">
+              Create Token
+            </a>
+          </Link>
         </div>
       </nav>
       <Component {...pageProps} />

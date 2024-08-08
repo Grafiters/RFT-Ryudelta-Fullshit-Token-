@@ -25,36 +25,60 @@ contract NFT is ERC721URIStorage {
         uint256 tokenId;
         string tokenURI;
         address owner;
-        string[] collection;
+        string collectionName;
+        string collectionSymbol;
         address[] ownerShip;
     }
 
     mapping(uint256 => address[]) private _ownerShip;
+    mapping(uint256 => Collection) private _collections;
 
     constructor(address marketplaceAddress) ERC721("Metaverse Tokens", "METT") {
         contractAddress = marketplaceAddress;
     }
 
-    function createCollection(string memory tokenURI) public returns (uint) {
+    function createCollection(string memory tokenURI, string memory name, string memory symbol ) public returns (uint) {
         _collectionIds.increment();
         uint256 newCollectionId = _collectionIds.current();
 
         _mint(msg.sender, newCollectionId);
         _setTokenURI(newCollectionId, tokenURI);
 
+        _collections[newCollectionId] = Collection({
+            collectionId: newCollectionId,
+            name: name,
+            symbol: symbol,
+            tokenURI: tokenURI
+        });
+
         return newCollectionId;
     }
 
-    function createToken(string memory tokenURI) public returns (uint) {
+    function createToken(string memory tokenURI, uint256 collectionId) public returns (uint) {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
 
         _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, tokenURI);
         setApprovalForAll(contractAddress, true);
+
+        _collections[newItemId] = collectionId;
         _ownerShip[newItemId].push(msg.sender);
         
         return newItemId;
+    }
+
+    function fetchCollections() public view returns (Collection[] memory) {
+        Collection[] memory collections = new Collection[](_collectionIds.current());
+        for (uint256 i = 0; i < _collectionIds.current(); i++) {
+            collections[i] = _collections[i + 1];
+        }
+        return collections;
+    }
+
+    function fetchCollectionID(uint256 collectionId) public view returns (Collection memory) {
+        require(bytes(_collections[collectionId].name).length > 0, "Collection does not exist");
+        return _collections[collectionId];
     }
 
     function _transfer(address to, uint256 tokenId) internal {
