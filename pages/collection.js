@@ -96,12 +96,15 @@ export default function CreateItem() {
     const provider = new ethers.providers.Web3Provider(connection)    
     const signer = provider.getSigner()
 
+    console.log("========================");
+
     /* next, create the item */
     let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
     let transaction = await contract.createCollection(url, name, symbol)
-    await transaction.wait()
+    console.log(transaction);
+    await transaction.wait();
 
-    router.push('/collection')
+    // router.push('/collection')
   }
 
   async function loadCollection() {
@@ -109,18 +112,22 @@ export default function CreateItem() {
     const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
     const data = await tokenContract.fetchCollections()
 
+    console.log(data);
     const items = await Promise.all(data.map(async i => {
-      const meta = await axios.get(i.tokenURI)
-      let item = {
-        tokenId: i.collectionId.toNumber(),
-        name: i.name,
-        symbol: i.symbol,
-        image: meta.data.image
+      if (i.collectionId.toNumber() > 0) {
+        const meta = await axios.get(i.tokenURI)
+        let item = {
+          tokenId: i.collectionId.toNumber(),
+          name: i.name,
+          symbol: i.symbol,
+          image: meta.data.image
+        }
+        return item
       }
-      return item
     }))
 
-    setNfts(items)
+    const datas = items.filter(item => item !== undefined)
+    setNfts(datas)
   }
 
   function tokenInCollection(id) {

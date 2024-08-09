@@ -40,24 +40,23 @@ export default function MyAssets() {
   async function loadNFTs() {
     await initializeWeb3Modal();
 
-    const data = await marketContract.fetchMyNFTs()
+    console.log("==========================");
+    const data = await tokenContract.getTokensInCollection(1)
+    console.log("data", data);
 
-    const items = await Promise.all(data.map(async i => {
-      const tokenUri = await tokenContract.tokenURI(i.tokenId)
-      const meta = await axios.get(tokenUri)
-      let price = ethers.utils.formatUnits(i.price.toString(), 'ether')
-      let item = {
-        price,
-        tokenId: i.tokenId.toNumber(),
-        seller: i.seller,
-        owner: i.owner,
-        image: meta.data.image,
-      }
+    // const items = await Promise.all(data.map(async i => {
+    //   const tokenUri = await tokenContract.tokenURI(i.tokenId)
+    //   const meta = await axios.get(tokenUri)
+    //   let item = {
+    //     tokenId: i.tokenId,
+    //     ownership: i.ownership,
+    //     owner: i.owner
+    //   }
 
-      console.log(item);
-      return item
-    }))
-    setNfts(items)
+    //   console.log(item);
+    //   return item
+    // }))
+    // setNfts(items)
     setLoadingState('loaded') 
   }
   if (loadingState === 'loaded' && !nfts.length) return (<h1 className="py-10 px-20 text-3xl">No assets owned</h1>)

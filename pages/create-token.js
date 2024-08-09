@@ -55,7 +55,7 @@ import Market from '../artifacts/contracts/Market.sol/NFTMarket.json'
 
 export default function CreateItem() {
   const [fileUrl, setFileUrl] = useState(null)
-  const [formInput, updateFormInput] = useState({ price: '', name: '', description: '' })
+  const [formInput, updateFormInput] = useState({ collectionId: 0, name: '', description: '' })
   const router = useRouter()
   const [nfts, setNfts] = useState([])
 
@@ -75,16 +75,18 @@ export default function CreateItem() {
   }
 
   async function createMarket() {
-    const { name, description, price } = formInput
-    if (!name || !description || !price || !fileUrl) return
+    console.log(formInput);
+    const { name, description, collectionId } = formInput
+    if (!name || !description || !fileUrl) return
+    if (collectionId <= 0 ) return
     /* first, upload metadata to IPFS */
     const data = JSON.stringify({
-      name, description, image: fileUrl
+      name, description, collectionId, image: fileUrl
     })
     try {
       const ipfsHash = await pinJSONToIPFS(data)
       const url = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`
-      createSale(url)
+      createSale(url, collectionId)
     } catch (error) {
       console.log('Error uploading file: ', error)
     }
@@ -109,17 +111,20 @@ export default function CreateItem() {
     setNfts(items)
   }
 
-  async function createSale(url) {
+  async function createSale(url, collectionId) {
     const web3Modal = new Web3Modal()
     const connection = await web3Modal.connect()
     const provider = new ethers.providers.Web3Provider(connection)    
     const signer = provider.getSigner()
 
     let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
-    let transaction = await contract.createToken(url)
+    let transaction = await contract.createToken(url, collectionId)
     await transaction.wait()
 
-    router.push('/my-assets')
+    console.log("==============================");
+    console.log("transaction", transaction);
+
+    // router.push('/create-token')
   }
 
   return (
@@ -139,12 +144,15 @@ export default function CreateItem() {
         />
         <select
           className="mt-2 border rounded p-4"
-          onChange={e => updateFormInput({ collectionId: e.target.value })}
+          onChange={e => updateFormInput({ ...formInput, collectionId: e.target.value })}
           value={formInput.collectionId}
         >
+        <option value="0">
+          Select Collection
+        </option>
           {
             nfts.map((nft, i) => (
-              <option key={nft.tokenId} value={nft.tokenId}>
+              <option value={nft.tokenId}>
               {nft.name} ({nft.symbol})
             </option>
             ))

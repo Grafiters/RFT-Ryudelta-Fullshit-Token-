@@ -10,6 +10,7 @@ import "hardhat/console.sol";
 
 contract NFT is ERC721URIStorage {
     using Counters for Counters.Counter;
+
     Counters.Counter private _tokenIds;
     Counters.Counter private _collectionIds;
     address contractAddress;
@@ -27,11 +28,12 @@ contract NFT is ERC721URIStorage {
         address owner;
         string collectionName;
         string collectionSymbol;
-        address[] ownerShip;
     }
 
     mapping(uint256 => address[]) private _ownerShip;
+    mapping(uint256 => uint256) private _tokenCollections;
     mapping(uint256 => Collection) private _collections;
+    mapping(uint256 => CollectionData) private _tokenData;
 
     constructor(address marketplaceAddress) ERC721("Metaverse Tokens", "METT") {
         contractAddress = marketplaceAddress;
@@ -40,9 +42,6 @@ contract NFT is ERC721URIStorage {
     function createCollection(string memory tokenURI, string memory name, string memory symbol ) public returns (uint) {
         _collectionIds.increment();
         uint256 newCollectionId = _collectionIds.current();
-
-        _mint(msg.sender, newCollectionId);
-        _setTokenURI(newCollectionId, tokenURI);
 
         _collections[newCollectionId] = Collection({
             collectionId: newCollectionId,
@@ -62,9 +61,18 @@ contract NFT is ERC721URIStorage {
         _setTokenURI(newItemId, tokenURI);
         setApprovalForAll(contractAddress, true);
 
-        _collections[newItemId] = collectionId;
+        _tokenCollections[newItemId] = collectionId;
         _ownerShip[newItemId].push(msg.sender);
         
+        Collection memory collection = _collections[collectionId];
+        _tokenData[newItemId] = CollectionData({
+            tokenId: newItemId,
+            tokenURI: tokenURI,
+            owner: msg.sender,
+            collectionName: collection.name,
+            collectionSymbol: collection.symbol
+        });
+
         return newItemId;
     }
 
@@ -94,6 +102,15 @@ contract NFT is ERC721URIStorage {
 
         for (uint256 i = 0; i < _tokenIds.current(); i++) {
             if (ownerOf(i) == owner) {
+                uint256 collectionId = _tokenCollections[i];
+                Collection memory collection = _collections[collectionId];
+                tokens[index] = CollectionData({
+                    tokenId: i,
+                    owner: owner,
+                    tokenURI: tokenURI(i),
+                    collectionName: collection.name,
+                    collectionSymbol: collection.symbol
+                });
                 index++;
             }
         }
@@ -105,22 +122,28 @@ contract NFT is ERC721URIStorage {
         return ownerOf(tokenId);
     }
 
-    // Fetch NFTs created by a specific address
-    function fetchItemsCreated() public view returns (CollectionData[] memory) {
+    function getTokensInCollection(uint256 collectionId) public view returns (CollectionData[] memory) {
         uint256 totalTokenCount = _tokenIds.current();
-        uint256 CollectionDataCount = 0;
+        uint256 tokenCount = 0;
 
-        for (uint256 i = 0; i < totalTokenCount; i++) {
-            if (ownerOf(i) == msg.sender) {
-                CollectionDataCount++;
+        for (uint256 i = 1; i <= totalTokenCount; i++) {
+            if (_tokenCollections[i] == collectionId) {
+                tokenCount++;
             }
         }
 
-        CollectionData[] memory tokens = new CollectionData[](CollectionDataCount);
+        CollectionData[] memory tokens = new CollectionData[](tokenCount);
         uint256 index = 0;
 
-        for (uint256 i = 0; i < totalTokenCount; i++) {
-            if (ownerOf(i) == msg.sender) {
+        for (uint256 i = 1; i <= totalTokenCount; i++) {
+            if (_tokenCollections[i] == collectionId) {
+                tokens[index] = CollectionData({
+                    tokenId: i,
+                    owner: ownerOf(i),
+                    tokenURI: tokenURI(i),
+                    collectionName: _collections[collectionId].name,
+                    collectionSymbol: _collections[collectionId].symbol
+                });
                 index++;
             }
         }
